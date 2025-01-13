@@ -1,0 +1,18 @@
+bidfeed/                  # Project root
+├── cmd/                  # Command line applications
+│   └── main.go          # Main application entry point
+├── config/              # Configuration files
+│   └── config.yml       # Main configuration file
+├── data/                # Data storage
+│   └── schema.sql       # Database schema
+├── logs/                # Log files
+├── pkg/                 # Library packages
+│   ├── database/        # Database related code
+│   │   └── database.go
+│   └── models/          # Data models
+│       └── models.go
+├── temp/                # Temporary storage
+├── test/                # Test files
+├── .gitignore
+├── go.mod              # Go module file
+└── go.sum              # Go module checksums

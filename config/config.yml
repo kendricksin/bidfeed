@@ -1,0 +1,65 @@
+# bidfeed/config/config.yml
+
+# Database configuration
+database:
+  path: "data/egp.db"
+  max_connections: 10
+  timeout_seconds: 30
+
+# Departments to monitor
+departments:
+  - id: "0304"
+    name: "Comptroller General's Department"
+  - id: "0307"
+    name: "Revenue Department"
+
+# Feed collection settings
+feed:
+  base_url: "http://process3.gprocurement.go.th/EPROCRssFeedWeb/egpannouncerss.xml"
+  timeout_seconds: 30
+  allowed_times:
+    - start: "12:01"
+      end: "12:59"
+    - start: "17:01"
+      end: "08:59"
+  max_entries: 20
+  lookback_days: 7
+
+# Keyword filtering
+keywords:
+  include:
+    - "construction"
+    - "software"
+    - "consultant"
+    - "system"
+  exclude:
+    - "cancelled"
+    - "postponed"
+  min_budget: 1000000  # Minimum budget to consider
+
+# PDF processing
+pdf:
+  temp_dir: "temp"
+  cleanup_after_hours: 24
+  max_size_mb: 50
+  timeout_seconds: 60
+
+# Error handling
+errors:
+  max_retries: 3
+  retry_delay_seconds: 300  # 5 minutes
+  alert_threshold: 5        # Number of errors before alerting
+
+# Logging
+logging:
+  path: "logs/app.log"
+  level: "info"  # debug, info, warn, error
+  max_size_mb: 100
+  max_backups: 3
+  max_age_days: 28
+
+# Processing settings
+processing:
+  batch_size: 10
+  concurrent_downloads: 3
+  poll_interval_seconds: 900  # 15 minutes

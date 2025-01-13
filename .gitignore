@@ -1,0 +1,37 @@
+# Go specific
+*.o
+*.a
+
+# Database files
+*.db
+*.db-journal
+data/*.db
+data/*.db-*
+
+# Temporary PDF files
+temp/
+temp/*
+
+# Log files
+*.log
+logs/
+logs/*
+
+# Configuration (uncomment if you want to exclude configuration files)
+# config/*.yml
+# config/*.yaml
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment files
+.env
+.env.local
+*.env
+
+# Debug files
+__debug_bin
