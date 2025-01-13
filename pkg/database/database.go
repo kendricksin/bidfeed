@@ -162,3 +162,20 @@ func (db *Database) LogError(error *models.ProcessingError) error {
 	)
 	return err
 }
+
+// InsertProject adds a new project to the database
+func (db *Database) InsertProject(project *models.Project) error {
+	query := `
+		INSERT INTO projects (id, feed_entry_id, title, dept_id, budget, pdf_content)
+		VALUES (?, ?, ?, ?, ?, ?)
+	`
+	_, err := db.Exec(query,
+		project.ID,
+		project.FeedEntryID,
+		project.Title,
+		project.DeptID,
+		project.Budget,
+		project.PDFContent,
+	)
+	return err
+}

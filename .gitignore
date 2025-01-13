@@ -11,6 +11,7 @@ data/*.db-*
 # Temporary PDF files
 temp/
 temp/*
+test/
 
 # Log files
 *.log

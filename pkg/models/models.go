@@ -96,22 +96,13 @@ type ProcessingError struct {
 	CreatedAt  time.Time `json:"created_at"`
 }
 
-// PDFContent represents the structure of the PDF content
+// PDFContent represents structured content extracted from a PDF
 type PDFContent struct {
-	Budget         float64
-	Specifications string
-	Duration       struct {
-		Years  int
-		Months int
-	}
-	SubmissionInfo struct {
-		Date string
-		Time string
-	}
-	ContactInfo struct {
-		Phone string
-		Email string
-	}
+	Budget         float64        `json:"budget"`
+	Specifications string         `json:"specifications"`
+	Duration       Duration       `json:"duration"`
+	SubmissionInfo SubmissionInfo `json:"submission_info"`
+	ContactInfo    ContactInfo    `json:"contact_info"`
 }
 
 // EntryStatus represents the possible states of a feed entry
@@ -131,3 +122,21 @@ const (
 	ErrorTypeExtract  = "extraction_error"
 	ErrorTypeDatabase = "database_error"
 )
+
+// Duration represents a time period in years and months
+type Duration struct {
+	Years  int `json:"years"`
+	Months int `json:"months"`
+}
+
+// SubmissionInfo contains bid submission date and time
+type SubmissionInfo struct {
+	Date string `json:"date"`
+	Time string `json:"time"`
+}
+
+// ContactInfo contains contact details
+type ContactInfo struct {
+	Phone string `json:"phone"`
+	Email string `json:"email"`
+}
