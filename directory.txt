@@ -1,18 +1,19 @@
-bidfeed/                  # Project root
-├── cmd/                  # Command line applications
-│   └── main.go          # Main application entry point
-├── config/              # Configuration files
-│   └── config.yml       # Main configuration file
-├── data/                # Data storage
-│   └── schema.sql       # Database schema
-├── logs/                # Log files
-├── pkg/                 # Library packages
-│   ├── database/        # Database related code
-│   │   └── database.go
-│   └── models/          # Data models
-│       └── models.go
-├── temp/                # Temporary storage
-├── test/                # Test files
-├── .gitignore
-├── go.mod              # Go module file
-└── go.sum              # Go module checksums
+egp-scraper/
+├── database/
+│   ├── __init__.py
+│   ├── models.py          # SQLite database models/schema
+│   └── database.py        # Database connection and operations
+├── scrapers/
+│   ├── __init__.py
+│   ├── egp_feed.py        # Modified egp_reader for SQLite storage
+│   ├── pdf_downloader.py  # Script to download PDFs from links
+│   └── pdf_extractor.py   # Modified pdf_extractor for SQLite storage
+├── utils/
+│   ├── __init__.py
+│   └── config.py          # Configuration settings
+├── data/
+│   ├── downloads/         # Directory for downloaded PDFs
+│   └── database.sqlite    # SQLite database file
+├── requirements.txt
+├── main.py               # Main script to run the pipeline
+└── README.md

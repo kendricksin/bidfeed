@@ -5,8 +5,7 @@
 # Database files
 *.db
 *.db-journal
-data/*.db
-data/*.db-*
+data/
 
 # Temporary PDF files
 temp/
@@ -33,6 +32,7 @@ logs/*
 .env
 .env.local
 *.env
+venv/
 
 # Debug files
 __debug_bin
