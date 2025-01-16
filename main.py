@@ -6,6 +6,8 @@ from datetime import datetime
 import codecs
 from database.database import Database
 from scripts.feed_scraper import EGPFeedScraper
+from utils.pdf_download import download_pdfs
+from utils.pdf_processor import process_announcements
 
 class UTFStreamHandler(logging.StreamHandler):
     def emit(self, record):
@@ -66,7 +68,20 @@ def setup_parser() -> argparse.ArgumentParser:
     
     # debug command
     debug_parser = subparsers.add_parser('debug', help='Show database contents')
-    
+
+    # Add download command
+    download_parser = subparsers.add_parser('download', help='Download PDFs for announcements')
+    download_parser.add_argument('dept_id', nargs='?', help='4-digit department code (e.g., 0307)')
+    download_parser.add_argument('limit', type=int, nargs='?', default=10, help='Number of announcements to process')
+
+    # extract command
+    extract_parser = subparsers.add_parser('extract', 
+        help='Download PDFs and extract data from announcements')
+    extract_parser.add_argument('dept_id', nargs='?', 
+        help='4-digit department code (e.g., 0307)')
+    extract_parser.add_argument('limit', type=int, nargs='?', default=10,
+        help='Number of announcements to process')
+
     return parser
 
 def process_readfeed(args):
@@ -114,23 +129,71 @@ def process_find(args):
                 print("\nNo announcements found in database.")
                 return
                 
-            print(f"\nFound {len(announcements)} recent announcements:")
+            total_count = announcements[0]['total_count']
+            print(f"\nFound {total_count} total announcements, showing {len(announcements)} most recent:")
             print("=" * 100)
             
             for i, ann in enumerate(announcements, 1):
                 # Format the announcement for display
-                title = ann['title'].strip()
-                published = ann['published_date'].strip() if ann['published_date'] else 'N/A'
-                created = datetime.fromisoformat(ann['created_at'].replace('Z', '+00:00')).strftime('%Y-%m-%d %H:%M:%S')
+                title = ann.get('title', '').strip()
+                published = ann.get('published_date', '').strip() if ann.get('published_date') else 'N/A'
+                project_id = ann.get('project_id', 'N/A')
                 
                 print(f"\n{i}. Title: {title}")
                 print(f"   Published Date: {published}")
-                print(f"   Created in DB: {created}")
-                print(f"   Link: {ann['link']}")
+                print(f"   Project ID: {project_id}")
+                print(f"   Link: {ann.get('link', '')}")
                 print("-" * 100)
-                
+    
     except Exception as e:
         logging.error(f"Error in process_find: {e}")
+        raise
+
+def process_download(args):
+    """Process the download command"""
+    try:
+        with Database() as db:
+            # Get announcements
+            announcements = db.get_recent_announcements(args.dept_id, args.limit)
+            
+            if not announcements:
+                print("\nNo announcements found to download.")
+                return
+                
+            print(f"\nDownloading PDFs for {len(announcements)} announcements...")
+            
+            # Download PDFs
+            results = download_pdfs(announcements)
+            
+            # Print summary
+            success_count = sum(1 for r in results if r['success'])
+            print(f"\nDownload Summary:")
+            print(f"Total attempted: {len(results)}")
+            print(f"Successfully downloaded: {success_count}")
+            print(f"Failed: {len(results) - success_count}")
+            
+            # Print details
+            print("\nDownload Details:")
+            for result in results:
+                status = "✓" if result['success'] else "✗"
+                print(f"\n{status} Project ID: {result['project_id']}")
+                print(f"   URL: {result['url']}")
+                if result['success']:
+                    print(f"   Saved to: {result['filepath']}")
+                else:
+                    print(f"   Failed to download")
+                    
+    except Exception as e:
+        logging.error(f"Error in process_download: {e}")
+        raise
+
+def process_extract(args):
+    """Process the extract command"""
+    try:
+        with Database() as db:
+            process_announcements(db, args.dept_id, args.limit)
+    except Exception as e:
+        logging.error(f"Error in process_extract: {e}")
         raise
 
 def process_debug(args):
@@ -168,16 +231,11 @@ def main():
         process_readfeed(args)
     elif args.command == 'find':
         process_find(args)
+    elif args.command == 'download':
+        process_download(args)
+    elif args.command == 'extract':
+        process_extract(args)
     elif args.command == 'debug':
         process_debug(args)
     else:
         parser.print_help()
-
-if __name__ == "__main__":
-    # Ensure UTF-8 is used for stdout/stderr if possible
-    if sys.stdout.encoding != 'utf-8':
-        if hasattr(sys.stdout, 'reconfigure'):
-            sys.stdout.reconfigure(encoding='utf-8')
-        if hasattr(sys.stderr, 'reconfigure'):
-            sys.stderr.reconfigure(encoding='utf-8')
-    main()

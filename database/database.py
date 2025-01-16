@@ -156,47 +156,56 @@ class Database:
     def get_recent_announcements(self, dept_id: Optional[str] = None, limit: int = 10) -> List[Dict]:
         """Get recent announcements with optional department filter"""
         try:
-            # Print debug info
-            debug_query = """SELECT COUNT(*) FROM announcements"""
-            self.cursor.execute(debug_query)
-            total_count = self.cursor.fetchone()[0]
-            logging.info(f"Total announcements in database: {total_count}")
-
+            # Build the base query
             if dept_id:
                 query = """
-                    SELECT id, title, link, published_date, description, 
-                           created_at, project_id, dept_id, announce_type, updated_at
-                    FROM announcements 
+                    SELECT a.*, COUNT(*) OVER() as total_count
+                    FROM announcements a
                     WHERE dept_id = ?
                     ORDER BY updated_at DESC
                     LIMIT ?
                 """
-                self.cursor.execute(query, (dept_id, limit))
-
-                # Debug logging
-                logging.info(f"Running query with dept_id: {dept_id}")
-                logging.info("Sample of stored data:")
-                debug_query = "SELECT title, description FROM announcements LIMIT 1"
-                self.cursor.execute(debug_query)
-                sample = self.cursor.fetchone()
-                if sample:
-                    logging.info(f"Sample title: {sample[0][:100]}")
-                    logging.info(f"Sample description: {sample[1][:100] if sample[1] else 'None'}")
+                params = (dept_id, limit)
+                logging.info(f"Searching for department ID: '{dept_id}'")
             else:
                 query = """
-                    SELECT id, title, link, published_date, description, created_at 
-                    FROM announcements 
-                    ORDER BY created_at DESC
+                    SELECT a.*, COUNT(*) OVER() as total_count
+                    FROM announcements a
+                    ORDER BY updated_at DESC
                     LIMIT ?
                 """
-                self.cursor.execute(query, (limit,))
-                
-            results = [dict(row) for row in self.cursor.fetchall()]
-            logging.info(f"Found {len(results)} announcements matching criteria")
+                params = (limit,)
+                logging.info("No department ID specified, fetching all recent announcements")
+
+            # Execute query and fetch all rows at once
+            self.cursor.execute(query, params)
+            rows = self.cursor.fetchall()
+
+            # Convert rows to dictionaries
+            results = []
+            for row in rows:
+                result_dict = dict(zip([col[0] for col in self.cursor.description], row))
+                results.append(result_dict)
+
+            # Log results summary
+            total_count = results[0]['total_count'] if results else 0
+            logging.info(f"Query returned {len(results)} of {total_count} total announcements")
+            
+            if dept_id and results:
+                logging.info(f"Results for department ID: {dept_id}")
+                for i, result in enumerate(results[:3], 1):  # Log first 3 results
+                    logging.info(f"Result {i}:")
+                    logging.info(f"  Title: {result['title'][:100]}")
+                    logging.info(f"  Published: {result['published_date']}")
+                    logging.info(f"  Project ID: {result['project_id']}")
+            elif not results:
+                logging.warning("No results found for query")
+
             return results
+
         except sqlite3.Error as e:
             logging.error(f"Error getting recent announcements: {e}")
-            raise
+            return []
 
     def update_download_status(self, announcement_id: int, status: str):
         """Update the download status for an announcement"""
